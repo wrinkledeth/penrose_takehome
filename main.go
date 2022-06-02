@@ -28,37 +28,6 @@ func loadDotenv() {
 // 	e.Logger.Fatal(e.Start(":1323"))
 // }
 
-// func getGETHClient() *ethclient.Client {
-// 	// Get provider URL
-// 	provider := os.Getenv("GOERLI_PROVIDER")
-// 	fmt.Println("provider: ", provider)
-//
-// 	// Start GETH client
-// 	client, err := ethclient.Dial(provider)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-//
-// 	return client
-// }
-
-// func getBalance(address string) {
-// 	client := getGETHClient()
-//
-// 	// Get balance
-// 	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(address), nil)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	// Convert from wei to ether
-// 	fbalance := new(big.Float)
-// 	fbalance.SetString(balance.String())
-// 	ethValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
-//
-// 	fmt.Println("Balance: ", ethValue)
-// }
-
 func hash_message(message string) []uint8 {
 	// Hash message to bytes, returns []uint8 byte array
 	data := []byte(message)
