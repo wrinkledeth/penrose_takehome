@@ -3,10 +3,12 @@
 - [Penrose Takehome Notes](#penrose-takehome-notes)
   - [Task](#task)
 - [Go](#go)
+  - [Style](#style)
   - [WSL2 installation](#wsl2-installation)
-  - [Modules](#modules)
+  - [Modules / Dependencies](#modules--dependencies)
   - [dotenv](#dotenv)
   - [fmt](#fmt)
+  - [slices](#slices)
 - [Echo (Go Web Framework)](#echo-go-web-framework)
   - [Installation](#installation)
   - [http](#http)
@@ -16,11 +18,18 @@
   - [Golang GETH Client Setup](#golang-geth-client-setup)
   - [Get Balance](#get-balance)
   - [Verifying private Key Using ECDSA](#verifying-private-key-using-ecdsa)
+    - [Generating New Wallets: https://goethereumbook.org/wallet-generate/](#generating-new-wallets-httpsgoethereumbookorgwallet-generate)
+    - [Generating Signatures: https://goethereumbook.org/signature-generate/](#generating-signatures-httpsgoethereumbookorgsignature-generate)
+    - [Verifying Signatures: https://goethereumbook.org/signature-verify/](#verifying-signatures-httpsgoethereumbookorgsignature-verify)
 - [Ethereum / EVM General Notes](#ethereum--evm-general-notes)
-  - [Goerli Testnet](#goerli-testnet)
+  - [Testnets](#testnets)
+    - [Sepolia:](#sepolia)
+    - [Goerli](#goerli)
   - [Solidity](#solidity)
     - [ABI](#abi)
   - [JSON-RPC](#json-rpc)
+- [Git](#git)
+  - [Creating an issue](#creating-an-issue)
 
 ## Task
 Build a REST API to verify it a user owns the private key to the wallet address they claim to have by leveraging ECDSA Signature scheme.
@@ -33,9 +42,27 @@ Sub Tasks
 
 
 # Go 
-https://go.dev/doc/ (docs)
-https://pkg.go.dev/ (packages)
-https://go.dev/tour/basics/ (tour of go: code snippets)
+- https://go.dev/doc/ (docs)
+- https://pkg.go.dev/ (packages)
+- https://go.dev/tour/basics/ (tour of go: code snippets)
+
+## Style
+https://github.com/golang/go/wiki/CodeReviewComments/#mixed-caps
+
+- In Go, it is convention to uses mixed cap. From the docs: https://golang.org/doc/effective_go.html#mixed-caps
+
+- Finally, the convention in Go is to use MixedCaps or mixedCaps rather than underscores to write multiword names.
+
+- Note that file level names beginning with Capital letter are exported at package level: https://golang.org/doc/effective_go.html#Getters
+
+- Also, it is convention to write acronyms on all caps. So below is fine:
+```go
+writeToMongoDB // unexported, only visible within the package
+// or
+WriteToMongoDB // exported
+// And not:
+writeToMongoDb
+```
 
 ## WSL2 installation
 ```bash
@@ -48,7 +75,7 @@ export PATH=$PATH:/usr/local/go/bin
 
 go version
 ```
-## Modules
+## Modules / Dependencies
 https://go.dev/ref/mod#go-mod-init
 https://faun.pub/understanding-go-mod-and-go-sum-5fd7ec9bcc34
 go.mod is for dependency mangement 
@@ -77,7 +104,15 @@ fmt.Println('str') // print string
 fmt.Printf("%T", variable) // print variable type
 ```
 
-
+## slices
+A slice is a dynamically-sized array. []T is a slice of type T
+```go
+// Array of integers, size = 6 
+primes := [6]int{2, 3, 5, 7, 11, 13}
+// Slice of integers
+var s []int = primes[1:4]
+fmt.Println(s) // [3 5 7]
+```
 
 
 # Echo (Go Web Framework)
@@ -131,22 +166,22 @@ client, err := ethclient.Dial("https://mainnet.infura.io")  // start geth rpc cl
 
 ## Get Balance
 ``` go 
-	// Get balance
-	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(address), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+// Get balance
+balance, err := client.BalanceAt(context.Background(), common.HexToAddress(address), nil)
+if err != nil {
+    log.Fatal(err)
+}
 
-    // Convert from wei to eth
-	fbalance := new(big.Float)
-	fbalance.SetString(balance.String())
-	ethValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
-	
-	fmt.Println("Balance: ", ethValue)
+// Convert from wei to eth
+fbalance := new(big.Float)
+fbalance.SetString(balance.String())
+ethValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
+
+fmt.Println("Balance: ", ethValue)
 ```
 
 ## Verifying private Key Using ECDSA
-Generating New Wallets: https://goethereumbook.org/wallet-generate/
+### Generating New Wallets: https://goethereumbook.org/wallet-generate/
 ```go
 import(
     "crypto/ecds"
@@ -169,27 +204,69 @@ func new_wallet() {
 	fmt.Println("From Address: ", fromAddress.String())
 }
 ```
-Transferring Eth: https://goethereumbook.org/transfer-eth/
 
+### Generating Signatures: https://goethereumbook.org/signature-generate/
+```go
+func signMessage(message string, privateKeyHex string) []uint8 {
+	// Convert private key to bytes
+	privateKey, _ := crypto.HexToECDSA(privateKeyHex)
+
+	// Hash message
+	data := []byte(message) // message in bytes
+	hash := crypto.Keccak256Hash(data)  
+
+	// Sign Hash
+	signature, _ := crypto.Sign(hash.Bytes(), privateKey)
+	fmt.Println("signature: ", hexutil.Encode(signature))
+}
+```
+### Verifying Signatures: https://goethereumbook.org/signature-verify/
+Getting Public Key Bytes: https://ethereum.stackexchange.com/questions/65019/goethereum-getting-publickeybytes-from-given-public-key  
+
+Need 3 things to verify a signature:
+- Signature:
+  To derive the public address from the public key bytes, you'll need to take the last 20 bytes from the keccack256 hash of the public key:
+``` go
+import(
+    github.com/ethereum/go-ethereum/common
+    github.com/ethereum/go-ethereum/common/hexutil
+    golang.org/x/crypto/sha3
+)
+
+func PublicKeyBytesToAddress(publicKey []byte) common.Address {
+    var buf []byte
+
+    hash := sha3.NewKeccak256()
+    hash.Write(publicKey[1:]) // remove EC prefix 04
+    buf = hash.Sum(nil)
+    address := buf[12:]
+
+    return common.HexToAddress(hex.EncodeToString(address))
+}
+```
+- Hash of original data
+- Public Key of Signer
+  
+```go 
+func verifySignature(){
+    
+}
+```
 
 # Ethereum / EVM General Notes
-## Goerli Testnet
-https://goerlifaucet.com/ (faucet)
+## Testnets
+### Sepolia: 
+- Proof of Work (Ethash) Best reproduces the current Ethereum production environment (PoW)
+- Website: https://sepolia.dev/
+- Resources: https://github.com/goerli/sepolia
 
-Sepolia
+### Goerli
+- Proof of Authority (Clique)Most stable for application developers (15s blocktime, no downtimes)
+- Website: https://goerli.net/
+- Resources: https://github.com/goerli/testnet
+- Faucet: https://goerlifaucet.com/ (faucet)
 
-Proof of Work (Ethash)
-Best reproduces the current Ethereum production environment (PoW)
-Website: https://sepolia.dev/
-Resources: https://github.com/goerli/sepolia
-Goerli
-
-Proof of Authority (Clique)
-Most stable for application developers (15s blocktime, no downtimes)
-Website: https://goerli.net/
-Resources: https://github.com/goerli/testnet
-
-Ropsten / Rinkeby / Kovan Deprecated
+(Ropsten / Rinkeby / Kovan Deprecated)
 
 ## Solidity
 ### ABI
@@ -201,7 +278,11 @@ Contract data is encoded according to it's type. The encoding is not self descri
 
 ## JSON-RPC
 https://geth.ethereum.org/docs/getting-started
+
 https://www.jsonrpc.org/
+
 https://en.wikipedia.org/wiki/Remote_procedure_call
 
-U
+# Git 
+## Creating an issue
+https://docs.github.com/en/issues/tracking-your-work-with-issues/creating-an-issue
