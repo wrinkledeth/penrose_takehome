@@ -48,8 +48,8 @@ Sub Tasks
   - https://ethereum.stackexchange.com/questions/76520/proper-way-to-save-a-public-key-as-bytes-in-a-contract
   - Seems like we can convert from Bytes to Hex Address but can we do the reverse?
   - https://stackoverflow.com/questions/52502511/how-to-generate-bytes-array-from-publickey
-
-- Neet to researcn Unit tests. 
+  - NOTE: This is becuase the adderss is computed by hashing the public key, so it cannot be done in reverse.
+- Need to researh Unit testing. 
 
 
 # Go 
