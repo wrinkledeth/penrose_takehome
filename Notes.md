@@ -21,7 +21,8 @@ go version
 ```
 ## Modules
 https://go.dev/ref/mod#go-mod-init
-
+https://faun.pub/understanding-go-mod-and-go-sum-5fd7ec9bcc34
+go.mod is for dependency mangement 
 ``` go 
 go mod init [current_folder] // Creates a new go.mod file (new module in cwd). 
 go get [package] // installs module to go.mod file
