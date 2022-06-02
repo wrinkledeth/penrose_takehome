@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/joho/godotenv"
-	"golang.org/x/crypto/sha3"
 )
 
 func loadDotenv() {
@@ -111,19 +110,9 @@ func verifySignature(message string, signatureBytes []uint8, publicKeyHex string
 
 func PublicKeyBytesToAddress(publicKey []byte) common.Address {
 	// Takes a public key byte array and returns it in common.Address format (0x...)
-	fmt.Print("\nConverting public key bytes to address...\n")
-	var buf []byte
-	fmt.Println("publicKey: ", publicKey)
-	hash := sha3.NewLegacyKeccak256() //new Keccak-256 hash.
-	fmt.Println("hash: ", hash)
-	hash.Write(publicKey[1:]) // remove EC prefix 04 and prep for hashing
-	fmt.Println("hash.Write(publicKey[1:]): ", hash)
-	buf = hash.Sum(nil) // compute hash
-	fmt.Println("buf: ", buf)
-	address := buf[12:] // remove first 12 bytes of hash (keep last 20)
-	fmt.Println("address: ", address)
-	fmt.Println()
-
+	fmt.Print("Converting public key bytes to address...\n")
+	hash := crypto.Keccak256Hash(publicKey[1:]) //remove EC prefix 04 and hash
+	address := hash[12:]                        // remove first 12 bytes of hash (keep last 20)
 	return common.HexToAddress(hex.EncodeToString(address))
 }
 

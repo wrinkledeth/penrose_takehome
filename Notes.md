@@ -129,7 +129,23 @@ fmt.Println(s) // [3 5 7]
 ```
 
 ## Hashing
+``` go
+import("github.com/ethereum/go-ethereum/crypto")
+func hash_message(message string) []uint8 {
+	// Hash message to bytes, returns []uint8 byte array
+	data := []byte(message) //byte[]
+	hash := crypto.Keccak256Hash(data) //common.hash 
+	return hash.Bytes()
+}
 
+//To convert public key (bytes) to 0x... Address:
+func PublicKeyBytesToAddress(publicKey []byte) common.Address {
+	hash := crypto.Keccak256Hash(publicKey[1:]) //remove EC prefix 04 and hash
+	address := hash[12:]  // remove first 12 bytes of hash (keep last 20)
+	return common.HexToAddress(hex.EncodeToString(address))
+}
+
+```
 
 
 
@@ -267,12 +283,9 @@ import(
 
 func PublicKeyBytesToAddress(publicKey []byte) common.Address {
 	// Takes a public key byte array and returns it in common.Address format (0x...)
-	var buf []byte
-	hash := sha3.NewLegacyKeccak256() //new Keccak-256 hash.
-	hash.Write(publicKey[1:]) // remove EC prefix 04 and prep for hashing
-	buf = hash.Sum(nil) // compute hash
-	address := buf[12:] // remove first 12 bytes of hash (keep last 20)
-    return common.HexToAddress(hex.EncodeToString(address))
+	hash := crypto.Keccak256Hash(publicKey[1:]) //remove EC prefix 04 and hash
+	address := hash[12:]  // remove first 12 bytes of hash (keep last 20)
+	return common.HexToAddress(hex.EncodeToString(address))
 }
 ```
 
