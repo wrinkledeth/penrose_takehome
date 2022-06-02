@@ -9,14 +9,15 @@
   - [dotenv](#dotenv)
   - [fmt](#fmt)
   - [slices](#slices)
+  - [Hashing](#hashing)
 - [GETH (Go Ethereum)](#geth-go-ethereum)
   - [Install CLI Tool (WSL2 Ubuntu via PPA's)](#install-cli-tool-wsl2-ubuntu-via-ppas)
   - [Golang GETH Client Setup](#golang-geth-client-setup)
   - [Get Balance](#get-balance)
   - [Verifying private Key Using ECDSA](#verifying-private-key-using-ecdsa)
-    - [Generating New Wallets: https://goethereumbook.org/wallet-generate/](#generating-new-wallets-httpsgoethereumbookorgwallet-generate)
-    - [Generating Signatures: https://goethereumbook.org/signature-generate/](#generating-signatures-httpsgoethereumbookorgsignature-generate)
-    - [Verifying Signatures: https://goethereumbook.org/signature-verify/](#verifying-signatures-httpsgoethereumbookorgsignature-verify)
+    - [Generating New Wallets:](#generating-new-wallets)
+    - [Generating Signatures:](#generating-signatures)
+    - [Verifying Signatures:](#verifying-signatures)
     - [Uint8 vs Byte](#uint8-vs-byte)
 - [Echo (Go Web Framework)](#echo-go-web-framework)
   - [Installation](#installation)
@@ -29,6 +30,7 @@
   - [Solidity](#solidity)
     - [ABI](#abi)
   - [JSON-RPC](#json-rpc)
+  - [ECDSA](#ecdsa)
 - [Git](#git)
   - [Creating an issue](#creating-an-issue)
 
@@ -126,6 +128,9 @@ var s []int = primes[1:4]
 fmt.Println(s) // [3 5 7]
 ```
 
+## Hashing
+
+
 
 
 # GETH (Go Ethereum)
@@ -177,7 +182,8 @@ fmt.Println("Balance: ", ethValue)
 Important Readings
 - [Mastering Bitcoin (keys and addresses)](https://www.oreilly.com/library/view/mastering-bitcoin-2nd/9781491954379/ch04.html)
 
-### Generating New Wallets: https://goethereumbook.org/wallet-generate/
+### Generating New Wallets: 
+https://goethereumbook.org/wallet-generate/
 ```go
 import(
     "crypto/ecds"
@@ -201,7 +207,8 @@ func new_wallet() {
 }
 ```
 
-### Generating Signatures: https://goethereumbook.org/signature-generate/
+### Generating Signatures: 
+https://goethereumbook.org/signature-generate/
 ```go
 func signMessage(message string, privateKeyHex string) []uint8 {
 	// Convert private key to bytes
@@ -216,7 +223,8 @@ func signMessage(message string, privateKeyHex string) []uint8 {
 	fmt.Println("signature: ", hexutil.Encode(signature))
 }
 ```
-### Verifying Signatures: https://goethereumbook.org/signature-verify/
+### Verifying Signatures: 
+https://goethereumbook.org/signature-verify/
 
 Need 3 things to verify a signature:
 - Signature
@@ -337,6 +345,17 @@ https://geth.ethereum.org/docs/getting-started
 https://www.jsonrpc.org/
 
 https://en.wikipedia.org/wiki/Remote_procedure_call
+
+## ECDSA 
+https://hackernoon.com/a-closer-look-at-ethereum-signatures-5784c14abecc
+
+https://medium.com/mycrypto/the-magic-of-digital-signatures-on-ethereum-98fe184dc9c7
+
+
+- Ethereum wallet address is the hashed version of the public key
+- Before blockchain, this elliptic curve standard was not common at all. In fact, most mainstream hardware vendors don’t support hardware encryption for this curve. It is rumored that secp256k1 was picked because it has the least likelihood of having kleptographic backdoors implanted by the NSA. :0
+- K (message to be signed) needs to be a secure random value. When k is not sufficiently random, or when the value is not secret, it’s possible to calculate the private key using two different signatures (“fault attack”).
+
 
 # Git 
 ## Creating an issue
