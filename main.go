@@ -11,12 +11,12 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 )
 
 func start_http_server() {
+	//! Start HTTP server (hello world code, needs work)
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
@@ -53,6 +53,7 @@ func get_balance(address string) {
 		log.Fatal(err)
 	}
 
+	// Convert from wei to ether
 	fbalance := new(big.Float)
 	fbalance.SetString(balance.String())
 	ethValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
