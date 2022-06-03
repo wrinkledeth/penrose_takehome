@@ -12,19 +12,28 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func Hash_message(message string) []uint8 {
-	// Hash message to bytes, returns []uint8 byte array
+func hash_message(message string) []uint8 {
+	// Helper function: Hash message to bytes, returns []uint8 byte array
 	data := []byte(message)
 	hash := crypto.Keccak256Hash(data)
 	return hash.Bytes()
 }
 
+func publicKeyBytesToAddress(publicKey []byte) common.Address {
+	// Helper Function: Takes a public key byte array and returns it in common.Address format (0x...)
+
+	// fmt.Print("Converting public key bytes to address...\n")
+	hash := crypto.Keccak256Hash(publicKey[1:]) //remove EC prefix 04 and hash
+	address := hash[12:]                        // remove first 12 bytes of hash (keep last 20)
+	return common.HexToAddress(hex.EncodeToString(address))
+}
+
 func SignMessage(message string, privateKeyHex string) string {
 	// Takes a message and private key as string inputs
-	// and returns the signature as []uint8 byte array
+	// and returns the signature as a string
 
-	// fmt.Println("signing message: ", message)
-	hashBytes := Hash_message(message) // Hash message to bytes ([]uint8)
+	// fmt.Println("Signing message with private key... ")
+	hashBytes := hash_message(message) // Hash message to bytes ([]uint8)
 
 	// Convert private key string to (*ecdsa.PrivateKey)
 	privateKey, _ := crypto.HexToECDSA(privateKeyHex)
@@ -36,18 +45,18 @@ func SignMessage(message string, privateKeyHex string) string {
 }
 
 func VerifySignature(message string, signature string, publicKeyHex string) string {
-	// Takes a message (string), signature (byte array) and publickey (string 0x..) as inputs
+	// Takes a message, signature, and  publickey as string inputs
 	// returns true if the signature was signed by the given public key and false otherwise
 
-	fmt.Println("verifying signature...")
-	hashBytes := Hash_message(message) // Hash message to bytes ([]uint8)
+	// fmt.Println("verifying signature...:", signature)
+	hashBytes := hash_message(message) // Hash message to bytes ([]uint8)
 
 	//Ecrecover returns the uncompressed public key that created the given signature
 	signatureBytes, _ := hexutil.Decode(signature)                 // Convert signature string to []byte
 	sigPublicKey, _ := crypto.Ecrecover(hashBytes, signatureBytes) //sigPublicKey is []byte
 
 	// Convert signature public key to address (0x...)
-	sigPublicKeyAddress := PublicKeyBytesToAddress(sigPublicKey)
+	sigPublicKeyAddress := publicKeyBytesToAddress(sigPublicKey)
 	fmt.Println("sigPublicKeyAddress: ", sigPublicKeyAddress)
 
 	// Convert public key string to common.Address
@@ -59,14 +68,6 @@ func VerifySignature(message string, signature string, publicKeyHex string) stri
 	fmt.Println("matches: ", string(matches))
 
 	return matches
-}
-
-func PublicKeyBytesToAddress(publicKey []byte) common.Address {
-	// Takes a public key byte array and returns it in common.Address format (0x...)
-	fmt.Print("Converting public key bytes to address...\n")
-	hash := crypto.Keccak256Hash(publicKey[1:]) //remove EC prefix 04 and hash
-	address := hash[12:]                        // remove first 12 bytes of hash (keep last 20)
-	return common.HexToAddress(hex.EncodeToString(address))
 }
 
 func RandSeq() string {

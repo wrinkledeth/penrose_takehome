@@ -16,6 +16,7 @@ func verify(c echo.Context) error {
 	address := c.FormValue("address")
 	signedMessage := c.FormValue("signedMessage")
 	message := c.FormValue("message")
+
 	result := utils.VerifySignature(message, signedMessage, address)
 	return c.String(http.StatusOK, result)
 }
