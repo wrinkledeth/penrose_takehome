@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -34,7 +35,7 @@ func SignMessage(message string, privateKeyHex string) string {
 	return hexutil.Encode(signature)
 }
 
-func VerifySignature(message string, signature string, publicKeyHex string) bool {
+func VerifySignature(message string, signature string, publicKeyHex string) string {
 	// Takes a message (string), signature (byte array) and publickey (string 0x..) as inputs
 	// returns true if the signature was signed by the given public key and false otherwise
 
@@ -54,8 +55,8 @@ func VerifySignature(message string, signature string, publicKeyHex string) bool
 	fmt.Println("publicKeyAddress: ", publicKeyAddress)
 
 	// Check for match
-	matches := sigPublicKeyAddress == publicKeyAddress
-	fmt.Println("matches: ", matches)
+	matches := strconv.FormatBool(sigPublicKeyAddress == publicKeyAddress)
+	fmt.Println("matches: ", string(matches))
 
 	return matches
 }
@@ -70,10 +71,10 @@ func PublicKeyBytesToAddress(publicKey []byte) common.Address {
 
 func RandSeq() string {
 	rand.Seed(time.Now().UnixNano())
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	var chars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
 	message := make([]rune, 32)
 	for i := range message {
-		message[i] = letters[rand.Intn(len(letters))]
+		message[i] = chars[rand.Intn(len(chars))]
 	}
 	return string(message)
 }

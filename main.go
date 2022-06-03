@@ -3,22 +3,21 @@ package main
 import (
 	"net/http"
 	"penrose_takehome/utils"
-	"strconv"
 
 	"github.com/labstack/echo"
 )
 
 func getMessage(c echo.Context) error {
-	return c.String(http.StatusOK, utils.RandSeq())
+	randomMessage := utils.RandSeq() //32 character random string
+	return c.String(http.StatusOK, randomMessage)
 }
 
 func verify(c echo.Context) error {
-	// Get name and email
 	address := c.FormValue("address")
 	signedMessage := c.FormValue("signedMessage")
 	message := c.FormValue("message")
 	result := utils.VerifySignature(message, signedMessage, address)
-	return c.String(http.StatusOK, strconv.FormatBool(result))
+	return c.String(http.StatusOK, result)
 }
 
 func startHTTPServer() {
