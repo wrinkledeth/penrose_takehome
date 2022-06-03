@@ -9,7 +9,6 @@ import (
 
 	"penrose_takehome/utils"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/joho/godotenv"
 )
 
@@ -28,7 +27,6 @@ func getMessage() string {
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
 	return string(body)
 }
 
@@ -45,16 +43,19 @@ func verifySignature(address string, signedMessage string, message string) strin
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
 	return string(body)
 }
 
 func main() {
+	// load key pair
 	loadDotenv()
 	privKey := os.Getenv("PRIVATE_KEY")
-	// pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
-	message := getMessage()
-	signature := utils.SignMessage(message, privKey)
-	fmt.Println("signature hex: ", hexutil.Encode(signature))
-	verifySignature("hi", "hi")
+	pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
+
+	message := getMessage() // get random message
+	fmt.Println("GET /get_message: " + message)
+
+	signature := utils.SignMessage(message, privKey)      //sign message
+	result := verifySignature(pubKey, signature, message) //verify signature
+	fmt.Print("POST /verify: " + result + "\n")
 }
