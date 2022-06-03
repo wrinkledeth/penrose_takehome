@@ -2,7 +2,7 @@
 
 ### Project Layout
 - main.go (kicks off http server)
-- utils/crypo_utils.go (GETH backend for message signing and signature verification) 
+- utils/crypo_utils.go (GETH backend utils for message signing and signature verification) 
 - client/client.go (http client for testing)
 
 ### Usage
