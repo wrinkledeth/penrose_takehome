@@ -1,39 +1,43 @@
 
 # Penrose Takehome Notes
 - [Penrose Takehome Notes](#penrose-takehome-notes)
-  - [Task](#task)
+	- [Task](#task)
 - [Go](#go)
-  - [Style](#style)
-  - [WSL2 installation](#wsl2-installation)
-  - [Modules / Dependencies](#modules--dependencies)
-  - [dotenv](#dotenv)
-  - [fmt](#fmt)
-  - [slices](#slices)
-  - [Hashing](#hashing)
-  - [Pointers](#pointers)
+	- [Style](#style)
+	- [WSL2 installation](#wsl2-installation)
+	- [Modules / Dependencies](#modules--dependencies)
+	- [dotenv](#dotenv)
+	- [fmt](#fmt)
+	- [slices](#slices)
+	- [Hashing](#hashing)
+	- [Pointers](#pointers)
+	- [Random String](#random-string)
+	- [Importing Packages:](#importing-packages)
 - [GETH (Go Ethereum)](#geth-go-ethereum)
-  - [Install CLI Tool (WSL2 Ubuntu via PPA's)](#install-cli-tool-wsl2-ubuntu-via-ppas)
-  - [Golang GETH Client Setup](#golang-geth-client-setup)
-  - [Get Balance](#get-balance)
-  - [Verifying private Key Using ECDSA](#verifying-private-key-using-ecdsa)
-    - [Generating New Wallets:](#generating-new-wallets)
-    - [Generating Signatures:](#generating-signatures)
-    - [Verifying Signatures:](#verifying-signatures)
-    - [Uint8 vs Byte](#uint8-vs-byte)
+	- [Install CLI Tool (WSL2 Ubuntu via PPA's)](#install-cli-tool-wsl2-ubuntu-via-ppas)
+	- [Golang GETH Client Setup](#golang-geth-client-setup)
+	- [Get Balance](#get-balance)
+	- [Verifying private Key Using ECDSA](#verifying-private-key-using-ecdsa)
+		- [Generating New Wallets:](#generating-new-wallets)
+		- [Generating Signatures:](#generating-signatures)
+		- [Verifying Signatures:](#verifying-signatures)
+		- [Uint8 vs Byte](#uint8-vs-byte)
 - [Echo (Go Web Framework)](#echo-go-web-framework)
-  - [Installation](#installation)
-  - [http](#http)
-    - [Handlers and servemuxes](#handlers-and-servemuxes)
+	- [Installation](#installation)
+	- [http](#http)
+		- [Handlers and servemuxes](#handlers-and-servemuxes)
+	- [Task](#task-1)
+	- [Golang Project Structure:](#golang-project-structure)
 - [Ethereum / EVM General Notes](#ethereum--evm-general-notes)
-  - [Testnets](#testnets)
-    - [Sepolia:](#sepolia)
-    - [Goerli](#goerli)
-  - [Solidity](#solidity)
-    - [ABI](#abi)
-  - [JSON-RPC](#json-rpc)
-  - [ECDSA](#ecdsa)
+	- [Testnets](#testnets)
+		- [Sepolia:](#sepolia)
+		- [Goerli](#goerli)
+	- [Solidity](#solidity)
+		- [ABI](#abi)
+	- [JSON-RPC](#json-rpc)
+	- [ECDSA](#ecdsa)
 - [Git](#git)
-  - [Creating an issue](#creating-an-issue)
+	- [Creating an issue](#creating-an-issue)
 
 ## Task
 Build a REST API to verify it a user owns the private key to the wallet address they claim to have by leveraging ECDSA Signature scheme.
@@ -151,7 +155,12 @@ func PublicKeyBytesToAddress(publicKey []byte) common.Address {
 ## Pointers 
 https://medium.com/@meeusdylan/when-to-use-pointers-in-go-44c15fe04eac
 
+## Random String
+https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
 
+## Importing Packages:
+https://go.dev/doc/code
+https://linguinecode.com/post/how-to-import-local-files-packages-in-golang
 
 # GETH (Go Ethereum)
 [GETH package docs](https://pkg.go.dev/github.com/ethereum/go-ethereum#section-directories)
@@ -316,6 +325,11 @@ NOTE: byte is an alias for uint8 and is equivalent to uint8 in all ways. It is u
 
 https://pkg.go.dev/builtin#:~:text=type%20byte,-type%20byte%20%3D%20uint8&text=byte%20is%20an%20alias%20for,8%2Dbit%20unsigned%20integer%20values.
 
+
+
+
+
+
 # Echo (Go Web Framework)
 https://echo.labstack.com/guide/
 ## Installation
@@ -331,6 +345,36 @@ https://pkg.go.dev/net/http
 
 ### Handlers and servemuxes
 https://www.alexedwards.net/blog/an-introduction-to-handlers-and-servemuxes-in-go 
+
+## Task
+```
+1) /get_message GET
+Request Body: none
+Response Body:
+{
+“message”: “random_message”
+}
+
+2) /verify POST
+Request Body:
+{
+“address”: “0x_some_wallet_address”,
+“signedMessage”: “signed_random_message_using_private_key”
+}
+Response Body:
+{
+“verified”: true (false)
+}
+```
+
+## Golang Project Structure:
+crypto_utils.go (sign messages, signature verification, random number)
+server.go (echo server)
+client.go ()
+
+
+
+
 
 
 # Ethereum / EVM General Notes
