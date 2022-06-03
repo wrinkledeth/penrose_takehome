@@ -10,6 +10,7 @@
   - [fmt](#fmt)
   - [slices](#slices)
   - [Hashing](#hashing)
+  - [Pointers](#pointers)
 - [GETH (Go Ethereum)](#geth-go-ethereum)
   - [Install CLI Tool (WSL2 Ubuntu via PPA's)](#install-cli-tool-wsl2-ubuntu-via-ppas)
   - [Golang GETH Client Setup](#golang-geth-client-setup)
@@ -146,6 +147,9 @@ func PublicKeyBytesToAddress(publicKey []byte) common.Address {
 }
 
 ```
+
+## Pointers 
+https://medium.com/@meeusdylan/when-to-use-pointers-in-go-44c15fe04eac
 
 
 

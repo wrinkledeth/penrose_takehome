@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"os"
+	"math/rand"
+	"net/http"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo"
 )
 
 func loadDotenv() {
@@ -18,15 +20,6 @@ func loadDotenv() {
 		fmt.Println("Error loading .env file")
 	}
 }
-
-// func startHTTPServer() {
-// 	//! Start HTTP server (hello world code, needs work)
-// 	e := echo.New()
-// 	e.GET("/", func(c echo.Context) error {
-// 		return c.String(http.StatusOK, "Hello, World!")
-// 	})
-// 	e.Logger.Fatal(e.Start(":1323"))
-// }
 
 func hash_message(message string) []uint8 {
 	// Hash message to bytes, returns []uint8 byte array
@@ -57,11 +50,9 @@ func verifySignature(message string, signatureBytes []uint8, publicKeyHex string
 
 	fmt.Println("verifying signature...")
 	hashBytes := hash_message(message) // Hash message to bytes ([]uint8)
-	// fmt.Println("hashBytes: ", hashBytes)
 
 	//Ecrecover returns the uncompressed public key that created the given signature
 	sigPublicKey, _ := crypto.Ecrecover(hashBytes, signatureBytes) //sigPublicKey is []byte
-	// fmt.Println("sigPublicKey: ", sigPublicKey)
 
 	// Convert signature public key to address (0x...)
 	sigPublicKeyAddress := PublicKeyBytesToAddress(sigPublicKey)
@@ -85,22 +76,56 @@ func PublicKeyBytesToAddress(publicKey []byte) common.Address {
 	return common.HexToAddress(hex.EncodeToString(address))
 }
 
+// e.GET("/users/:id", getUser)
+func getUser(c echo.Context) error {
+	// User ID from path `users/:id`
+	id := c.Param("id")
+	return c.String(http.StatusOK, id)
+}
+
+func randSeq(c echo.Context) error {
+	rand.Seed(time.Now().UnixNano())
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	message := make([]rune, 32)
+	for i := range message {
+		message[i] = letters[rand.Intn(len(letters))]
+	}
+	return c.String(http.StatusOK, string(message))
+}
+
+func startHTTPServer() {
+	//! Start HTTP server (hello world code, needs work)
+	e := echo.New()
+	// e.GET("/", func(c echo.Context) error {
+	// 	return c.String(http.StatusOK, "Hello, World!")
+	// })
+
+	// e.POST("/users", saveUser)
+	// e.GET("/users/:id", getUser)
+	// e.PUT("/users/:id", updateUser)
+	// e.DELETE("/users/:id", deleteUser)
+	// e.GET("/get_message", randSeq)
+	e.GET("/get_message", randSeq)
+
+	e.Logger.Fatal(e.Start(":1323"))
+
+}
+
 func main() {
-	// Load .env file and get public / private key pair
-	loadDotenv()
-	privKey := os.Getenv("GOERLI_PRIVATE_KEY")
-	pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
+	// // Load .env file and get public / private key pair
+	// loadDotenv()
+	// privKey := os.Getenv("GOERLI_PRIVATE_KEY")
+	// pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
 
-	//Sign Message with Priv Key
-	message := "hello"
-	signature := signMessage(message, privKey)
-	fmt.Println("signature hex: ", hexutil.Encode(signature))
-	fmt.Println()
+	// //Sign Message with Priv Key
+	// message := "hello"
+	// signature := signMessage(message, privKey)
+	// fmt.Println("signature hex: ", hexutil.Encode(signature))
+	// fmt.Println()
 
-	// Verify Signature
-	out := verifySignature(message, signature, pubKey)
-	fmt.Println("verifySignature: ", out)
-
-	// getBalance(pubkey)
-	// startHTTPServer()
+	// // Verify Signature
+	// out := verifySignature(message, signature, pubKey)
+	// fmt.Println("verifySignature: ", out)
+	// randSeq()
+	startHTTPServer()
 }
