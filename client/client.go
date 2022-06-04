@@ -5,8 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
-	"penrose_takehome/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -19,12 +17,29 @@ func loadDotenv() {
 	}
 }
 
-func getMessage() string {
+func getMessage() (string, *http.Cookie) {
 	resp, err := http.Get("http://127.0.0.1:1323/get_message")
 	if err != nil {
 		fmt.Println("Get Error") // handle error
 	}
 	defer resp.Body.Close()
+
+	// save cookie
+	cookie := resp.Cookies()[0]
+
+	// read response
+	body, _ := io.ReadAll(resp.Body)
+	return string(body), cookie
+}
+
+func getSessionMessage(cookie *http.Cookie) string {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "http://127.0.0.1:1323/session_message", nil)
+	if err != nil {
+		panic(err)
+	}
+	req.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value})
+	resp, err := client.Do(req)
 	body, _ := io.ReadAll(resp.Body)
 	return string(body)
 }
@@ -48,14 +63,17 @@ func verifySignature(address string, signedMessage string, message string) strin
 func main() {
 	// load key pair
 	loadDotenv()
-	privKey := os.Getenv("PRIVATE_KEY")
-	// fmt.Println(privKey)
-	pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
+	// privKey := os.Getenv("PRIVATE_KEY")
+	// // fmt.Println(privKey)
+	// pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
 
-	message := getMessage() // get random message
+	message, cookie := getMessage() // get random message
 	fmt.Println("GET /get_message: " + message)
 
-	signature := utils.SignMessage(message, privKey)      //sign message
-	result := verifySignature(pubKey, signature, message) //verify signature
-	fmt.Print("POST /verify: " + result + "\n")
+	sessionMessage := getSessionMessage(cookie)
+	fmt.Println("GET /session_message: " + sessionMessage)
+
+	// signature := utils.SignMessage(message, privKey)      //sign message
+	// result := verifySignature(pubKey, signature, message) //verify signature
+	// fmt.Print("POST /verify: " + result + "\n")
 }

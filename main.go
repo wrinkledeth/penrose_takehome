@@ -48,13 +48,15 @@ func startHTTPServer() {
 	})
 
 	// Get previous message from session
-	e.GET("/whoami", func(c echo.Context) error {
+	e.GET("/session_message", func(c echo.Context) error {
 		sess, err := session.Get("session", c)
 		if err != nil {
 			return err
 		}
 
-		return c.JSON(http.StatusOK, sess.Values["message"])
+		message := sess.Values["message"].(string)
+
+		return c.String(http.StatusOK, message)
 	})
 
 	// Verify signature, feching message from session
