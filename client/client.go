@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -57,12 +58,19 @@ func main() {
 	privKey := os.Getenv("PRIVATE_KEY")
 	pubKey := os.Getenv("PUBLIC_KEY")
 
-	// get random message and store session cookie
-	message, cookie := getMessage() // get random message
-	fmt.Println("GET /get_message: " + message)
+	// get random message and grab session cookie
+	resp_json, cookie := getMessage() // get random message
+	fmt.Println("GET /get_message: " + resp_json)
+
+	// Pull out message from json response
+	var resp_map map[string]interface{}
+	json.Unmarshal([]byte(resp_json), &resp_map)
+	message := resp_map["message"].(string)
+
+	// sign message
+	signature := utils.SignMessage(message, privKey)
 
 	// verify signature, maintain session using cookie
-	signature := utils.SignMessage(message, privKey) //sign message
-	result := postVerify(pubKey, signature, cookie)  //verify signature
+	result := postVerify(pubKey, signature, cookie)
 	fmt.Print("POST /verify: " + result + "\n")
 }

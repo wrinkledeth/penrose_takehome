@@ -13,11 +13,13 @@ import (
 func startHTTPServer() {
 	e := echo.New() // create new echo instance
 
+	// Use session middleware for session tracking
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 
 	// Get new message
 	e.GET("/get_message", func(c echo.Context) error {
 		fmt.Println("GET received...")
+
 		sess, err := session.Get("session", c)
 		if err != nil {
 			return err
@@ -31,9 +33,16 @@ func startHTTPServer() {
 
 		randomMessage := utils.RandSeq() //32 character random string
 		fmt.Println("Message Generated: ", randomMessage)
+
+		// Store message in session
 		sess.Values["message"] = randomMessage
 		sess.Save(c.Request(), c.Response())
-		return c.String(http.StatusOK, randomMessage)
+
+		// Return message to client
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": randomMessage,
+		})
+
 	})
 
 	// Verify signature, feching message from session
@@ -43,12 +52,19 @@ func startHTTPServer() {
 			return err
 		}
 		fmt.Println("\nPOST received...")
+		// get address and signed message from POST parameters
 		address := c.FormValue("address")
 		signedMessage := c.FormValue("signedMessage")
+
+		// get message from session
 		message := sess.Values["message"].(string)
 		fmt.Println("Session Stored Message: ", message)
+
+		// verify signature and return result to client
 		result := utils.VerifySignature(message, signedMessage, address)
-		return c.String(http.StatusOK, result)
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"verified": result,
+		})
 	})
 
 	e.Logger.Fatal(e.Start(":1323")) // start server on port 1323
