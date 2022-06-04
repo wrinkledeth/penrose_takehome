@@ -30,6 +30,9 @@
 		- [Handlers and servemuxes](#handlers-and-servemuxes)
 	- [Task](#task-1)
 	- [Session](#session)
+		- [Implement session store on server](#implement-session-store-on-server)
+		- [Implement Cookie on Client](#implement-cookie-on-client)
+		- [POST with NewRequest + cookie](#post-with-newrequest--cookie)
 - [Ethereum / EVM General Notes](#ethereum--evm-general-notes)
 	- [Testnets](#testnets)
 		- [Sepolia:](#sepolia)
@@ -40,6 +43,7 @@
 	- [ECDSA](#ecdsa)
 - [Git](#git)
 	- [Creating an issue](#creating-an-issue)
+	- [Undo last commit](#undo-last-commit)
 
 ## Task
 Build a REST API to verify it a user owns the private key to the wallet address they claim to have by leveraging ECDSA Signature scheme.
@@ -385,47 +389,126 @@ https://github.com/go-session/echo-session
 https://github.com/gorilla/sessions#store-implementations
 
 
-Samplecode demonstrating session store
+### Implement session store on server
+Cookie info can be viewed in chrome like so:
+F12 (developer mode) -> applications tab -> cookies -> select site
+
+Server Code
 ``` go
-import (
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
-)
+	e := echo.New() // create new echo instance
 
-e := echo.New()
-e.Use(session.Middleware(sessions.NewCookieStore([]byte("Secret"))))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 
-// Add the name "Steve" to the session
-e.GET("/login", func(c echo.Context) error {
-        sess, err := session.Get("session", c)
-        if err != nil {
-            return err
-        }
-        sess.Options = &sessions.Options{
-            Path:     "/",
-            MaxAge:   0,
-            HttpOnly: false,
-            Secure:   true,
-        }
-        sess.Values["name"] = "Steve"
-        sess.Save(c.Request(), c.Response())
-        return c.NoContent(http.StatusOK)
-    })
+	// Get new message
+	e.GET("/get_message", func(c echo.Context) error {
+		sess, err := session.Get("session", c)
+		if err != nil {
+			return err
+		}
+		sess.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   0,
+			HttpOnly: false,
+			Secure:   true,
+		}
+		randomMessage := utils.RandSeq() //32 character random string
+		sess.Values["message"] = randomMessage
+		sess.Save(c.Request(), c.Response())
+		return c.String(http.StatusOK, randomMessage)
+	})
 
-    // Reply with the name saved in the session
-    e.GET("/whoami", func(c echo.Context) error {
-        sess, err := session.Get("session", c)
-        if err != nil {
-            return err
-        }
+	// Get previous message from session
+	e.GET("/session_message", func(c echo.Context) error {
+		sess, err := session.Get("session", c)
+		if err != nil {
+			return err
+		}
 
-        return c.JSON(http.StatusOK, sess.Values["name"])
-    })
+		message := sess.Values["message"].(string)
+
+		return c.String(http.StatusOK, message)
+	})
+```
+### Implement Cookie on Client
+https://stackoverflow.com/questions/12756782/go-http-post-and-use-cookies
+https://pkg.go.dev/net/http#Response.Cookies
+https://pkg.go.dev/net/http#Request.AddCookie
+
+Client Code
+```go
+func getMessage() (string, *http.Cookie) {
+	resp, err := http.Get("http://127.0.0.1:1323/get_message")
+	if err != nil {
+		fmt.Println("Get Error") // handle error
+	}
+	defer resp.Body.Close()
+
+	// save cookie
+	cookie := resp.Cookies()[0]
+
+	// read response
+	body, _ := io.ReadAll(resp.Body)
+	return string(body), cookie
+}
+
+func getSessionMessage(cookie *http.Cookie) string {
+
+	req, err := http.NewRequest("GET", "http://127.0.0.1:1323/session_message", nil)
+	if err != nil {
+		fmt.Println("Get Error")
+	}
+	req.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value})
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	body, _ := io.ReadAll(resp.Body)
+	return string(body)
+}
+```
+
+### POST with NewRequest + cookie
+https://gist.github.com/17twenty/2fb30a22141d84e52446
+
+Server
+``` go
+	e.POST("/verify", func(c echo.Context) error { // verify signature
+		sess, err := session.Get("session", c)
+		if err != nil {
+			return err
+		}
+
+		address := c.FormValue("address")
+		signedMessage := c.FormValue("signedMessage")
+		message := sess.Values["message"].(string)
+
+		result := utils.VerifySignature(message, signedMessage, address)
+		return c.String(http.StatusOK, result)
+	})
 
 ```
-COOKIE can be viewed in chrome like so:
-F12 (developer mode) -> applications tab -> cookies -> select site
+
+Client
+``` go
+func postVerify(address string, signedMessage string, cookie *http.Cookie) string {
+	data := url.Values{
+		"address":       {address},
+		"signedMessage": {signedMessage},
+	}
+
+	postBody := bytes.NewBufferString(data.Encode())                                 // url encoded data in body
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:1323/verify", postBody)      // create POST request
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value") // header to specify url encoded data
+	req.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value})              // add cookie to request to keep session
+
+	client := &http.Client{}
+	resp, _ := client.Do(req)
+	body, _ := io.ReadAll(resp.Body)
+
+	return string(body)
+}
+```
+
 
 
 
@@ -474,3 +557,14 @@ https://medium.com/mycrypto/the-magic-of-digital-signatures-on-ethereum-98fe184d
 # Git 
 ## Creating an issue
 https://docs.github.com/en/issues/tracking-your-work-with-issues/creating-an-issue
+
+## Undo last commit
+git-tower.com/learn/git/faq/undo-last-commit
+
+```bash
+# Soft reset (revisions preserved)
+git reset --soft HEAD~1
+
+# Hard reset(revisions discarded)
+git reset --hard HEAD~1
+```

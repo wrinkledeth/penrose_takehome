@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"penrose_takehome/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -20,60 +23,46 @@ func loadDotenv() {
 func getMessage() (string, *http.Cookie) {
 	resp, err := http.Get("http://127.0.0.1:1323/get_message")
 	if err != nil {
-		fmt.Println("Get Error") // handle error
+		fmt.Println("Get Error")
 	}
 	defer resp.Body.Close()
 
-	// save cookie
-	cookie := resp.Cookies()[0]
+	cookie := resp.Cookies()[0]      // get cookie from response
+	body, _ := io.ReadAll(resp.Body) // read response body
 
-	// read response
-	body, _ := io.ReadAll(resp.Body)
 	return string(body), cookie
 }
 
-func getSessionMessage(cookie *http.Cookie) string {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://127.0.0.1:1323/session_message", nil)
-	if err != nil {
-		panic(err)
-	}
-	req.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value})
-	resp, err := client.Do(req)
-	body, _ := io.ReadAll(resp.Body)
-	return string(body)
-}
-
-func verifySignature(address string, signedMessage string, message string) string {
+func postVerify(address string, signedMessage string, cookie *http.Cookie) string {
 	data := url.Values{
 		"address":       {address},
 		"signedMessage": {signedMessage},
-		"message":       {message},
 	}
 
-	resp, err := http.PostForm("http://127.0.0.1:1323/verify", data)
-	if err != nil {
-		fmt.Println("Post Error") // handle error
-	}
-	defer resp.Body.Close()
+	postBody := bytes.NewBufferString(data.Encode())                                 // url encoded data in body
+	req, _ := http.NewRequest("POST", "http://127.0.0.1:1323/verify", postBody)      // create POST request
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value") // header to specify url encoded data
+	req.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value})              // add cookie to request to keep session
+
+	client := &http.Client{}
+	resp, _ := client.Do(req)
 	body, _ := io.ReadAll(resp.Body)
+
 	return string(body)
 }
 
 func main() {
 	// load key pair
 	loadDotenv()
-	// privKey := os.Getenv("PRIVATE_KEY")
-	// // fmt.Println(privKey)
-	// pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
+	privKey := os.Getenv("PRIVATE_KEY")
+	pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
 
+	// get random message and store session cookie
 	message, cookie := getMessage() // get random message
 	fmt.Println("GET /get_message: " + message)
 
-	sessionMessage := getSessionMessage(cookie)
-	fmt.Println("GET /session_message: " + sessionMessage)
-
-	// signature := utils.SignMessage(message, privKey)      //sign message
-	// result := verifySignature(pubKey, signature, message) //verify signature
-	// fmt.Print("POST /verify: " + result + "\n")
+	// verify signature, maintain session using cookie
+	signature := utils.SignMessage(message, privKey) //sign message
+	result := postVerify(pubKey, signature, cookie)  //verify signature
+	fmt.Print("POST /verify: " + result + "\n")
 }
