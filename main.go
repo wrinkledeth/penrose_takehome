@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"penrose_takehome/utils"
 
@@ -16,6 +17,7 @@ func startHTTPServer() {
 
 	// Get new message
 	e.GET("/get_message", func(c echo.Context) error {
+		fmt.Println("GET received...")
 		sess, err := session.Get("session", c)
 		if err != nil {
 			return err
@@ -26,7 +28,9 @@ func startHTTPServer() {
 			HttpOnly: false,
 			Secure:   true,
 		}
+
 		randomMessage := utils.RandSeq() //32 character random string
+		fmt.Println("Message Generated: ", randomMessage)
 		sess.Values["message"] = randomMessage
 		sess.Save(c.Request(), c.Response())
 		return c.String(http.StatusOK, randomMessage)
@@ -38,11 +42,11 @@ func startHTTPServer() {
 		if err != nil {
 			return err
 		}
-
+		fmt.Println("\nPOST received...")
 		address := c.FormValue("address")
 		signedMessage := c.FormValue("signedMessage")
 		message := sess.Values["message"].(string)
-
+		fmt.Println("Session Stored Message: ", message)
 		result := utils.VerifySignature(message, signedMessage, address)
 		return c.String(http.StatusOK, result)
 	})
