@@ -12,9 +12,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func loadDotenv() {
+func loadEnv(path string) {
 	// Load .env file if it exists
-	err := godotenv.Load()
+	err := godotenv.Load(path)
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
@@ -53,9 +53,9 @@ func postVerify(address string, signedMessage string, cookie *http.Cookie) strin
 
 func main() {
 	// load key pair
-	loadDotenv()
+	loadEnv("../.env")
 	privKey := os.Getenv("PRIVATE_KEY")
-	pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
+	pubKey := os.Getenv("PUBLIC_KEY")
 
 	// get random message and store session cookie
 	message, cookie := getMessage() // get random message
