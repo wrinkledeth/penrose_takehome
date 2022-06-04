@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-
 	"penrose_takehome/utils"
 
 	"github.com/joho/godotenv"
@@ -50,6 +49,7 @@ func main() {
 	// load key pair
 	loadDotenv()
 	privKey := os.Getenv("PRIVATE_KEY")
+	// fmt.Println(privKey)
 	pubKey := "0xd9ae60EE41D999562eDD101E2096D38D1C19F982"
 
 	message := getMessage() // get random message

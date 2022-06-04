@@ -5,14 +5,16 @@
 - [Go](#go)
 	- [Style](#style)
 	- [WSL2 installation](#wsl2-installation)
-	- [Modules / Dependencies](#modules--dependencies)
 	- [dotenv](#dotenv)
 	- [fmt](#fmt)
-	- [slices](#slices)
 	- [Hashing](#hashing)
+	- [Interfaces](#interfaces)
+	- [Maps](#maps)
+	- [Modules / Dependencies](#modules--dependencies)
+	- [Packages / Importing:](#packages--importing)
 	- [Pointers](#pointers)
 	- [Random String](#random-string)
-	- [Importing Packages:](#importing-packages)
+	- [slices](#slices)
 - [GETH (Go Ethereum)](#geth-go-ethereum)
 	- [Install CLI Tool (WSL2 Ubuntu via PPA's)](#install-cli-tool-wsl2-ubuntu-via-ppas)
 	- [Golang GETH Client Setup](#golang-geth-client-setup)
@@ -27,7 +29,7 @@
 	- [http](#http)
 		- [Handlers and servemuxes](#handlers-and-servemuxes)
 	- [Task](#task-1)
-	- [Golang Project Structure:](#golang-project-structure)
+	- [Session](#session)
 - [Ethereum / EVM General Notes](#ethereum--evm-general-notes)
 	- [Testnets](#testnets)
 		- [Sepolia:](#sepolia)
@@ -91,18 +93,6 @@ export PATH=$PATH:/usr/local/go/bin
 
 go version
 ```
-## Modules / Dependencies
-https://go.dev/ref/mod#go-mod-init
-https://faun.pub/understanding-go-mod-and-go-sum-5fd7ec9bcc34
-go.mod is for dependency mangement 
-``` go 
-go mod init [current_folder] // Creates a new go.mod file (new module in cwd). 
-go get -u github.com/ethereum/go-ethereum/ethclient // install module which appears in go.mod
-import(
-    "github.com/ethereum/go-ethereum/ethclient" // import module in your go file
-)
-client, err := ethclient.Dial("https://mainnet.infura.io")  // use module
-```
 
 ## dotenv
 ``` go
@@ -123,16 +113,6 @@ fmt.Printf("%T", variable) // print variable type
 // https://github.com/golang/go/issues/34174
 ```
 
-## slices
-A slice is a dynamically-sized array. []T is a slice of type T
-```go
-// Array of integers, size = 6 
-primes := [6]int{2, 3, 5, 7, 11, 13}
-// Slice of integers
-var s []int = primes[1:4]
-fmt.Println(s) // [3 5 7]
-```
-
 ## Hashing
 ``` go
 import("github.com/ethereum/go-ethereum/crypto")
@@ -149,8 +129,32 @@ func PublicKeyBytesToAddress(publicKey []byte) common.Address {
 	address := hash[12:]  // remove first 12 bytes of hash (keep last 20)
 	return common.HexToAddress(hex.EncodeToString(address))
 }
-
 ```
+
+## Interfaces
+https://gobyexample.com/interfaces
+https://jordanorelli.com/post/32665860244/how-to-use-interfaces-in-go
+
+## Maps
+https://gobyexample.com/maps
+
+## Modules / Dependencies
+https://go.dev/ref/mod#go-mod-init
+https://faun.pub/understanding-go-mod-and-go-sum-5fd7ec9bcc34
+go.mod is for dependency mangement 
+``` go 
+go mod init [current_folder] // Creates a new go.mod file (new module in cwd). 
+go get -u github.com/ethereum/go-ethereum/ethclient // install module which appears in go.mod
+import(
+    "github.com/ethereum/go-ethereum/ethclient" // import module in your go file
+)
+client, err := ethclient.Dial("https://mainnet.infura.io")  // use module
+```
+
+
+## Packages / Importing:
+https://go.dev/doc/code
+https://linguinecode.com/post/how-to-import-local-files-packages-in-golang
 
 ## Pointers 
 https://medium.com/@meeusdylan/when-to-use-pointers-in-go-44c15fe04eac
@@ -158,9 +162,17 @@ https://medium.com/@meeusdylan/when-to-use-pointers-in-go-44c15fe04eac
 ## Random String
 https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
 
-## Importing Packages:
-https://go.dev/doc/code
-https://linguinecode.com/post/how-to-import-local-files-packages-in-golang
+## slices
+A slice is a dynamically-sized array. []T is a slice of type T
+```go
+// Array of integers, size = 6 
+primes := [6]int{2, 3, 5, 7, 11, 13}
+// Slice of integers
+var s []int = primes[1:4]
+fmt.Println(s) // [3 5 7]
+```
+
+
 
 # GETH (Go Ethereum)
 [GETH package docs](https://pkg.go.dev/github.com/ethereum/go-ethereum#section-directories)
@@ -367,12 +379,53 @@ Response Body:
 }
 ```
 
-## Golang Project Structure:
-crypto_utils.go (sign messages, signature verification, random number)
-server.go (echo server)
-client.go ()
+## Session
+https://echo.labstack.com/middleware/session/
+https://github.com/go-session/echo-session
+https://github.com/gorilla/sessions#store-implementations
 
 
+Samplecode demonstrating session store
+``` go
+import (
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
+)
+
+e := echo.New()
+e.Use(session.Middleware(sessions.NewCookieStore([]byte("Secret"))))
+
+// Add the name "Steve" to the session
+e.GET("/login", func(c echo.Context) error {
+        sess, err := session.Get("session", c)
+        if err != nil {
+            return err
+        }
+        sess.Options = &sessions.Options{
+            Path:     "/",
+            MaxAge:   0,
+            HttpOnly: false,
+            Secure:   true,
+        }
+        sess.Values["name"] = "Steve"
+        sess.Save(c.Request(), c.Response())
+        return c.NoContent(http.StatusOK)
+    })
+
+    // Reply with the name saved in the session
+    e.GET("/whoami", func(c echo.Context) error {
+        sess, err := session.Get("session", c)
+        if err != nil {
+            return err
+        }
+
+        return c.JSON(http.StatusOK, sess.Values["name"])
+    })
+
+```
+COOKIE can be viewed in chrome like so:
+F12 (developer mode) -> applications tab -> cookies -> select site
 
 
 
