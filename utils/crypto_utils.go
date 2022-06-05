@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"math/rand"
@@ -16,7 +17,7 @@ func LoadEnv(path string) {
 	// Load .env file if it exists
 	err := godotenv.Load(path)
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		fmt.Printf("Error loading .env file: %s", err)
 	}
 }
 
@@ -42,6 +43,24 @@ func PublicKeyBytesToAddress(publicKey []byte) common.Address {
 	hash := crypto.Keccak256Hash(publicKey[1:]) //remove EC prefix 04 and hash
 	address := hash[12:]                        // remove first 12 bytes of hash (keep last 20)
 	return common.HexToAddress(hex.EncodeToString(address))
+}
+
+func PrivateKeyToPublicAddress(privateKey string) string {
+	// Takes a private key string and returns the corresponding public address (truncated hashed pubkey)
+	privateKeyECDSA, err := crypto.HexToECDSA(privateKey)
+	if err != nil {
+		fmt.Printf("Error converting private key to ECDSA %s", err)
+		return ""
+	}
+	publicKey := privateKeyECDSA.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		fmt.Printf("Error casting public key to ECDSA")
+		return ""
+	}
+
+	address := crypto.PubkeyToAddress(*publicKeyECDSA)
+	return address.Hex()
 }
 
 func SignMessage(message string, privateKeyHex string) string {

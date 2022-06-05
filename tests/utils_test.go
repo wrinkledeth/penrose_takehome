@@ -1,17 +1,13 @@
 package tests
 
 import (
-	"crypto/ecdsa"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
 	"penrose_takehome/utils"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
 )
 
 /*
@@ -26,20 +22,19 @@ RandSeq:
 
 HashMessage:
 - assert(input -> correct output)
-- input != string?
 
 PublicKeyBytesToAddress:
 - assert(input -> correct output)
-- input != []byte?
-- input not a public key?
+- input not a public key
 
 SignMessage:
 - assert(input -> correct output)
-- inputs of wrong type?
+- input not a private key
 
 VerifySignature:
-- assert(input -> correct output)
-- inputs of wrong type?
+- assert(correct input -> true (correct output))
+- assert (wrong inputs -> false)
+- input not a private key / public key
 
 Test cases will use Key Pair from go-ethereum tutorials
 privkey : fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19
@@ -49,33 +44,22 @@ address : 0x96216849c49358B10257cb55b28eA603c874b05E
 */
 
 func TestLoadEnv(t *testing.T) {
+	// pull
+
 	// load key pair
 	utils.LoadEnv("../.env")
-	providedPrivateKey := os.Getenv("PRIVATE_KEY")
-	providedPublicKeyString := os.Getenv("PUBLIC_KEY")
-	providedPublicKey := common.HexToAddress(providedPublicKeyString)
+	privateKey := os.Getenv("PRIVATE_KEY")
+	publicKey := os.Getenv("PUBLIC_KEY")
 
-	privKeyECDSA, err := crypto.HexToECDSA(providedPrivateKey)
-	if err != nil {
-		log.Fatal(err)
-	}
+	derivedPublicKey := utils.PrivateKeyToPublicAddress(privateKey)
 
-	publicKey := privKeyECDSA.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		log.Fatal("error casting public key to ECDSA")
-	}
-
-	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
-	derivedPublicKey := utils.PublicKeyBytesToAddress(publicKeyBytes)
-
-	fmt.Println("provided public key: ", providedPublicKey)
+	fmt.Println("provided public key: ", publicKey)
 	fmt.Println("derived public key: ", derivedPublicKey)
 
-	match := (providedPublicKey == derivedPublicKey)
+	match := (publicKey == derivedPublicKey)
 	if !match {
 		t.Error(".env PRIVATE_KEY does not correspond to PUBLIC_KEY")
-		t.Errorf("Derived Public Key %s does not match actual %s", providedPublicKey, derivedPublicKey)
+		t.Errorf("Derived Public Key %s \ndoes not match actual %s", publicKey, derivedPublicKey)
 	}
 }
 
@@ -94,7 +78,7 @@ func TestHashMessage(t *testing.T) {
 	hash := hexutil.Encode(hashBytes)
 
 	if hash != expectedHash {
-		t.Errorf("HashMessage output %s does not match expected hash %s", hash, expectedHash)
+		t.Errorf("HashMessage output %s \ndoes not match expected hash %s", hash, expectedHash)
 	}
 }
 
@@ -106,7 +90,19 @@ func TestPublicKeyBytesToAddress(t *testing.T) {
 	pubKey := utils.PublicKeyBytesToAddress(pubKeyBytes).Hex()
 
 	if pubKey != expectedAddress {
-		t.Errorf("PublicKeyBytesToAddress() output %s does not match expected address %s", pubKey, expectedAddress)
+		t.Errorf("PublicKeyBytesToAddress() output %s \ndoes not match expected address %s", pubKey, expectedAddress)
+	}
+
+}
+
+func TestPrivateKeyToPublicAddress(t *testing.T) {
+	expectedAddress := "0x96216849c49358B10257cb55b28eA603c874b05E"
+
+	privateKey := "fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19"
+	derivedPublicKey := utils.PrivateKeyToPublicAddress(privateKey)
+
+	if derivedPublicKey != expectedAddress {
+		t.Errorf("PrivateKeyToPublicAddress() output %s \ndoes not match expected address %s", derivedPublicKey, expectedAddress)
 	}
 
 }
@@ -119,18 +115,24 @@ func TestSignMessage(t *testing.T) {
 	signature := utils.SignMessage(message, privateKey)
 
 	if signature != expectedSignature {
-		t.Errorf("SignMessage() output %s does not match expected signature %s", signature, expectedSignature)
+		t.Errorf("SignMessage() output %s \ndoes not match expected signature %s", signature, expectedSignature)
 	}
 }
 
 func TestVerifySignature(t *testing.T) {
+	// Check for false negative
 	message := "Hello World!"
 	signature := "0x2da71721e3fbb58b0a2351ba5e8ac0fd0ac4d57818f3f762c0f424e7dc6a1de92ca49748fe677d9c60578fd9104dea015ad456a984af187ce5dcdc24c9800fb400"
 	address := "0x96216849c49358B10257cb55b28eA603c874b05E"
-
 	valid := utils.VerifySignature(message, signature, address)
-
 	if !valid {
-		t.Error("VerifySignature() failed (match == 'false')")
+		t.Error("VerifySignature() giving false negative")
+	}
+
+	// Check for false positive
+	address = "0x12346849c49358B10257cb55b28eA603c8741234"
+	valid = utils.VerifySignature(message, signature, address)
+	if valid {
+		t.Error("VerifySignature() giving false positive")
 	}
 }

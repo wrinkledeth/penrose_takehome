@@ -583,3 +583,4 @@ git reset --soft HEAD~1
 # Hard reset(revisions discarded)
 git reset --hard HEAD~1
 ```
+

@@ -19,7 +19,7 @@ func startHTTPServer() {
 
 	// Get new message
 	e.GET("/get_message", func(c echo.Context) error {
-		fmt.Println("GET received...")
+		fmt.Println("\nGET received...")
 
 		sess, err := session.Get("session", c)
 		if err != nil {
@@ -52,7 +52,7 @@ func startHTTPServer() {
 		if err != nil {
 			return err
 		}
-		fmt.Println("\nPOST received...")
+		fmt.Println("POST received...")
 		// get address and signed message from POST parameters
 		address := c.FormValue("address")
 		signedMessage := c.FormValue("signedMessage")
