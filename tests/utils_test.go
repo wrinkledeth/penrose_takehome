@@ -19,6 +19,7 @@ LoadEnv:
 
 RandSeq:
 - output of correct length and type
+- mulpitple calls to RandSeq() should return different values
 
 HashMessage:
 - assert(input -> correct output)
@@ -67,6 +68,10 @@ func TestRandSeq(t *testing.T) {
 	randSeq := utils.RandSeq()
 	if len(randSeq) != 32 {
 		t.Error("RandSeq() output is not 32 bytes")
+	}
+	randSeq2 := utils.RandSeq()
+	if randSeq == randSeq2 {
+		t.Errorf("RandSeq() output is not unique: %s, %s", randSeq, randSeq2)
 	}
 }
 
