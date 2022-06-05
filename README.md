@@ -11,25 +11,30 @@ This project implements a REST API which verifies if a user owns the private key
 ``` bash
 # Make sure you have .env in your root directory configured like so
 cat project_root/.env
-PUBLIC_KEY=0x000060EE41D999562eDD101E2096D38D1C19F982
-PRIVATE_KEY= <insert corresponding private key here>
+PUBLIC_KEY=<0x...>
+PRIVATE_KEY=<insert corresponding private key here>
 
 # Start Echo Server
 go run main.go  
 ⇨ http server started on [::]:1323
-GET received... # output after running test client
-Message Generated:  3mj1NhrU8gY6k7e1szUARuGZTuTAQvPn
+GET received...
+Message Generated:  7nxVpHUWzgyfxYz2n3rb5OZYo72vRC8R
 
 POST received...
-Session Stored Message:  3mj1NhrU8gY6k7e1szUARuGZTuTAQvPn
-sigPublicKeyAddress:  0xd9ae60EE41D999562eDD101E2096D38D1C19F982
-publicKeyAddress:  0xd9ae60EE41D999562eDD101E2096D38D1C19F982
+Session Stored Message:  7nxVpHUWzgyfxYz2n3rb5OZYo72vRC8R
+sigPublicKeyAddress:  0x96216849c49358B10257cb55b28eA603c874b05E
+publicKeyAddress:  0x96216849c49358B10257cb55b28eA603c874b05E
 matches:  true
 
 # Run Test Client
 go run client.go 
-GET /get_message: 3mj1NhrU8gY6k7e1szUARuGZTuTAQvPn
-POST /verify: true
+GET /get_message: {"message":"7nxVpHUWzgyfxYz2n3rb5OZYo72vRC8R"}
+POST /verify: {"verified":"true"}
+
+# Unit Tests
+go test tests/utils_test.go -v
 ```
+
+
 
 ### Research Notes [Notes.md](https://github.com/wrinkledeth/penrose_takehome/blob/main/Notes.md)

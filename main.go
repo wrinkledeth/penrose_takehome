@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"penrose_takehome/utils"
+	"strconv"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -62,8 +63,9 @@ func startHTTPServer() {
 
 		// verify signature and return result to client
 		result := utils.VerifySignature(message, signedMessage, address)
+		resultStr := strconv.FormatBool(result)
 		return c.JSON(http.StatusOK, map[string]interface{}{
-			"verified": result,
+			"verified": resultStr,
 		})
 	})
 

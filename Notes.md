@@ -15,6 +15,7 @@
 	- [Pointers](#pointers)
 	- [Random String](#random-string)
 	- [slices](#slices)
+	- [Unit Testing](#unit-testing)
 - [GETH (Go Ethereum)](#geth-go-ethereum)
 	- [Install CLI Tool (WSL2 Ubuntu via PPA's)](#install-cli-tool-wsl2-ubuntu-via-ppas)
 	- [Golang GETH Client Setup](#golang-geth-client-setup)
@@ -67,6 +68,7 @@ Sub Tasks
 - https://go.dev/doc/ (docs)
 - https://pkg.go.dev/ (packages)
 - https://go.dev/tour/basics/ (tour of go: code snippets)
+- https://gobyexample.com/if-else (go by example)
 
 ## Style
 https://github.com/golang/go/wiki/CodeReviewComments/#mixed-caps
@@ -107,6 +109,11 @@ if err != nil {
 }
 ropsten_provider_api_key := os.Getenv("ROPSTEN_ALCHEMY_API_KEY")
 ```
+
+Using godotenv when running tests (from diff directory)
+https://github.com/joho/godotenv/issues/43
+https://stackoverflow.com/questions/68346410/how-to-use-dynamic-location-for-godotenv-load-env-file
+
 
 ## fmt
 ```go
@@ -176,7 +183,15 @@ var s []int = primes[1:4]
 fmt.Println(s) // [3 5 7]
 ```
 
+## Unit Testing
+https://go.dev/doc/tutorial/add-a-test
 
+
+Assertions:
+https://gist.github.com/samalba/6059502
+
+
+https://www.practical-go-lessons.com/chap-19-unit-tests
 
 # GETH (Go Ethereum)
 [GETH package docs](https://pkg.go.dev/github.com/ethereum/go-ethereum#section-directories)

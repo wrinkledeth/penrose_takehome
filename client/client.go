@@ -9,17 +9,7 @@ import (
 	"net/url"
 	"os"
 	"penrose_takehome/utils"
-
-	"github.com/joho/godotenv"
 )
-
-func loadEnv(path string) {
-	// Load .env file if it exists
-	err := godotenv.Load(path)
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-}
 
 func getMessage() (string, *http.Cookie) {
 	resp, err := http.Get("http://127.0.0.1:1323/get_message")
@@ -54,7 +44,7 @@ func postVerify(address string, signedMessage string, cookie *http.Cookie) strin
 
 func main() {
 	// load key pair
-	loadEnv("../.env")
+	utils.LoadEnv("../.env")
 	privKey := os.Getenv("PRIVATE_KEY")
 	pubKey := os.Getenv("PUBLIC_KEY")
 
