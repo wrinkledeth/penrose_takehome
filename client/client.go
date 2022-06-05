@@ -47,10 +47,11 @@ func main() {
 	utils.LoadEnv("../.env")
 	privKey := os.Getenv("PRIVATE_KEY")
 	pubKey := os.Getenv("PUBLIC_KEY")
+	privKey = "poop"
 
 	// get random message and grab session cookie
 	resp_json, cookie := getMessage() // get random message
-	fmt.Println("GET /get_message: " + resp_json)
+	fmt.Print("GET /get_message: " + resp_json)
 
 	// Pull out message from json response
 	var resp_map map[string]interface{}

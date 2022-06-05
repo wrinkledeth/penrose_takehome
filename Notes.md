@@ -45,6 +45,10 @@
 - [Git](#git)
 	- [Creating an issue](#creating-an-issue)
 	- [Undo last commit](#undo-last-commit)
+- [AWS Script for cloud deployment](#aws-script-for-cloud-deployment)
+	- [AWS CLI Install](#aws-cli-install)
+	- [CDK install](#cdk-install)
+	- [CDK ec2 w/ typescript](#cdk-ec2-w-typescript)
 
 ## Task
 Build a REST API to verify it a user owns the private key to the wallet address they claim to have by leveraging ECDSA Signature scheme.
@@ -584,3 +588,79 @@ git reset --soft HEAD~1
 git reset --hard HEAD~1
 ```
 
+
+# AWS Script for cloud deployment
+Plan: use AWS CDK to generate cloudformation template which:
+- creates VPC and internet gateway
+- creates EC2
+- pushes golang code
+
+setup cdk: https://aws.amazon.com/getting-started/guides/setup-cdk/ 
+
+cdk with go: https://www.go-on-aws.com/infrastructure-as-go/cdk-go/cdk-instance/
+
+
+
+## AWS CLI Install
+```bash
+# install aws-cli
+sudo apt-install awscli
+
+aws configure
+
+zen@zenDESKTOP:~/.aws$ aws sts get-caller-identity
+{
+    "UserId": "AIDATZP75XK6TZ34HNKUB",
+    "Account": "260919114429",
+    "Arn": "arn:aws:iam::260919114429:user/wrinkled"
+}
+# This user has full ec2, cloudformation, and vpc permissions
+```
+## CDK install
+deploying webapp with cdk: https://aws.amazon.com/getting-started/guides/deploy-webapp-ec2/module-one/
+
+cdkv2 error: https://github.com/aws/aws-cdk/issues/542
+
+
+```bash
+#install cdk
+npm install -g aws-cdk
+
+# Get the account ID
+aws sts get-caller-identity
+# Bootstrap the account
+cdk bootstrap aws://ACCOUNT-NUMBER/REGION
+cdk bootstrap aws://260919114429/us-east-1
+
+CDKToolkit: creating CloudFormation changeset...
+ ✅  Environment aws://260919114429/us-east-1 bootstrapped.
+
+mkdir ec2-cdk
+cd ec2-cdk
+cdk init app --language typescript
+
+npm i @aws-cdk/aws-ec2 @aws-cdk/aws-iam @aws-cdk/aws-s3-assets cdk-ec2-key-pair
+```
+
+## CDK ec2 w/ typescript
+clone this down:
+https://github.com/aws-samples/aws-cdk-examples/tree/master/typescript/ec2-instance
+npm install
+cdk deploy
+
+Ec2CdkStack.DownloadKeyCommand = aws secretsmanager get-secret-value --secret-id ec2-ssh-key/cdk-keypair/private --query SecretString --output text > cdk-key.pem && chmod 400 cdk-key.pem
+Ec2CdkStack.IPAddress = 3.94.77.23
+Ec2CdkStack.sshcommand = ssh -i cdk-key.pem -o IdentitiesOnly=yes ec2-user@3.94.77.23
+
+ec2-user script
+```bash
+#!/bin/bash
+sudo yum update -y
+sudo yum install git -y
+sudo yum install golang -y
+
+git clone https://github.com/wrinkledeth/penrose_takehome.git
+cd penrose_takehome
+go get -d -v ./...
+go run main.go
+``` 

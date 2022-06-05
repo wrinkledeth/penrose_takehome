@@ -17,18 +17,18 @@ PRIVATE_KEY=<insert corresponding private key here>
 # Start Echo Server
 go run main.go  
 ⇨ http server started on [::]:1323
-GET received...
-Message Generated:  7nxVpHUWzgyfxYz2n3rb5OZYo72vRC8R
-
+GET received... 
+Message Generated:  NkCHlIsY8uV0OmdS0AbGbeUSrROMFlzK
 POST received...
-Session Stored Message:  7nxVpHUWzgyfxYz2n3rb5OZYo72vRC8R
-sigPublicKeyAddress:  0x96216849c49358B10257cb55b28eA603c874b05E
-publicKeyAddress:  0x96216849c49358B10257cb55b28eA603c874b05E
+Session Stored Message:  NkCHlIsY8uV0OmdS0AbGbeUSrROMFlzK
+Provided Wallet Address:  0x96216849c49358B10257cb55b28eA603c874b05E
+Signature Derived Address:  0x96216849c49358B10257cb55b28eA603c874b05E
 matches:  true
 
 # Run Test Client
+cd client # required
 go run client.go 
-GET /get_message: {"message":"7nxVpHUWzgyfxYz2n3rb5OZYo72vRC8R"}
+GET /get_message: {"message":"NkCHlIsY8uV0OmdS0AbGbeUSrROMFlzK"}
 POST /verify: {"verified":"true"}
 
 # Unit Tests
