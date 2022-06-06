@@ -5,6 +5,7 @@
 - [Go](#go)
 	- [Style](#style)
 	- [WSL2 installation](#wsl2-installation)
+	- [CLI Flags](#cli-flags)
 	- [dotenv](#dotenv)
 	- [fmt](#fmt)
 	- [Hashing](#hashing)
@@ -49,6 +50,8 @@
 	- [AWS CLI Install](#aws-cli-install)
 	- [CDK install](#cdk-install)
 	- [CDK ec2 w/ typescript](#cdk-ec2-w-typescript)
+	- [Adding Userdata to EC2 Instance](#adding-userdata-to-ec2-instance)
+		- [To Research : SAM / AWS Amplify / Figma](#to-research--sam--aws-amplify--figma)
 
 ## Task
 Build a REST API to verify it a user owns the private key to the wallet address they claim to have by leveraging ECDSA Signature scheme.
@@ -103,6 +106,10 @@ export PATH=$PATH:/usr/local/go/bin
 
 go version
 ```
+
+## CLI Flags
+https://gobyexample.com/command-line-flags
+
 
 ## dotenv
 ``` go
@@ -646,7 +653,12 @@ npm i @aws-cdk/aws-ec2 @aws-cdk/aws-iam @aws-cdk/aws-s3-assets cdk-ec2-key-pair
 clone this down:
 https://github.com/aws-samples/aws-cdk-examples/tree/master/typescript/ec2-instance
 npm install
+
+```
+npm run build
 cdk deploy
+cdk destroy
+```
 
 Ec2CdkStack.DownloadKeyCommand = aws secretsmanager get-secret-value --secret-id ec2-ssh-key/cdk-keypair/private --query SecretString --output text > cdk-key.pem && chmod 400 cdk-key.pem
 Ec2CdkStack.IPAddress = 3.94.77.23
@@ -664,3 +676,29 @@ cd penrose_takehome
 go get -d -v ./...
 go run main.go
 ``` 
+## Adding Userdata to EC2 Instance
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
+
+https://aws.amazon.com/getting-started/guides/deploy-webapp-ec2/module-two/
+
+https://bobbyhadz.com/blog/aws-cdk-ec2-userdata-example
+
+Trouble shoot user data script:
+```bash
+cat /var/log/cloud-init-output.log
+
+...
+
+Complete!
++ git clone https://github.com/wrinkledeth/penrose_takehome.git
+Cloning into 'penrose_takehome'...
++ cd penrose_takehome
++ go get -d -v ./...
+missing $GOPATH
+Jun 06 16:32:16 cloud-init[1195]: util.py[WARNING]: Failed running /var/lib/cloud/instance/scripts/part-001 [1]
+Jun 06 16:32:16 cloud-init[1195]: cc_scripts_user.py[WARNING]: Failed to run module scripts-user (scripts in /var/lib/cloud/instance/scripts)
+Jun 06 16:32:16 cloud-init[1195]: util.py[WARNING]: Running module scripts-user (<module 'cloudinit.config.cc_scripts_user' from '/usr/lib/python2.7/site-packages/cloudinit/config/cc_scripts_user.pyc'>) failed
+Cloud-init v. 19.3-45.amzn2 finished at Mon, 06 Jun 2022 16:32:16 +0000. Datasource DataSourceEc2.  Up 48.67 seconds
+```
+
+### To Research : SAM / AWS Amplify / Figma

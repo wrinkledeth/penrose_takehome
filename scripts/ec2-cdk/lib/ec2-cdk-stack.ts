@@ -42,6 +42,7 @@ export class Ec2CdkStack extends cdk.Stack {
       allowAllOutbound: true
     });
     securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'Allow SSH Access')
+    securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(1323), 'Allow access to Echo REST API')
 
     const role = new iam.Role(this, 'ec2Role', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')
@@ -85,5 +86,6 @@ export class Ec2CdkStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'Key Name', { value: key.keyPairName })
     // new cdk.CfnOutput(this, 'Download Key Command', { value: 'aws secretsmanager get-secret-value --secret-id ec2-ssh-key/cdk-keypair/private --query SecretString --output text > cdk-key.pem && chmod 400 cdk-key.pem' })
     new cdk.CfnOutput(this, 'ssh command', { value: 'ssh ec2-user@' + ec2Instance.instancePublicIp })
+    new cdk.CfnOutput(this, 'REST API Client Command', { value: 'go run client.go -url=http://' + ec2Instance.instancePublicIp + ":1323" })
   }
 }

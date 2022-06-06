@@ -1,19 +1,57 @@
 # EC2 Instance Creation with CDK
 
-This example will create:
+This AWS CDK script will create:
 
 - A new VPC
 - Two public subnets
 - A security group
 - An EC2 instance in one of the subnets
 
-The `/src/config.sh` file is used as [user-data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) for the EC2 instance. Update this with any commands you'd like to be executed when the EC2 instance first boots.
+The `/src/config.sh` file is used to install depencendies, pull down the REST API code, and start the  verification service.
+```bash
+#!/bin/bash -xe
 
-[_learn more about user-data_](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html)
+cd /home/ec2-user
+mkdir go
+
+# Install Dependencies
+sudo yum update -y
+sudo yum install git -y
+sudo yum install gcc -y
+
+# Install Golang
+wget https://go.dev/dl/go1.18.3.linux-arm64.tar.gz
+tar -C /usr/local -zxvf go1.18.3.linux-arm64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+export GOPATH=/home/ec2-user/go
+export GOCACHE=/home/ec2-user/.cache/go-build
+go version
+
+# Clone Repo
+git clone https://github.com/wrinkledeth/penrose_takehome.git
+cd penrose_takehome
+go get -d -v ./... # Install Go modules
+go run main.go # Start HTTP Service
+
+```
+
+## NOTE
+An ssh keypair is needed if you want to ssh into the ec2 instance after creation.
+
+Please edit line 25 of `lib/ec2-cdk-stacks.ts` and insert your public key
+```ts
+    const key = new KeyPair(this, 'Test-Key-Pair', {
+      name: 'imported-key-pair',
+      publicKey: 'ssh-ed25519 XXXXXXXXXXXXXX'
+    });
+```
+
 
 ## To Deploy
 
 Ensure aws-cdk is installed and [bootstrapped](https://docs.aws.amazon.com/cdk/latest/guide/bootstrapping.html).
+
+
 
 ```bash
 $ npm install -g aws-cdk
@@ -27,35 +65,17 @@ $ npm run build
 $ cdk deploy
 ```
 
-## Output
+## Sample Output
+- `Ec2CdkStack.IPAddress` = 54.91.30.24
+- `Ec2CdkStack.KeyName` = imported-key-pair
+- `Ec2CdkStack.RESTAPIClientCommand` = go run client.go -url=http://54.91.30.24:1323
+- `Ec2CdkStack.sshcommand` = ssh ec2-user@54.91.30.24
 
-- `Ec2CdkStack.DownloadKeyCommand`: The command needed to download the private key that was created.
-- `Ec2CdkStack.IPAddress`: Public IP Address of Instance.
-- `Ec2CdkStack.KeyName`: Key Name that was created.
-- `Ec2CdkStack.sshcommand`: The command used to connect to the instance.
-
-## Keys and Access
-
-A Key Pair is created as part of this project. The public key will be installed as an authorized key in the EC2 instance.
-
-To connect to the instance:
-
-1. Download the private key from aws secretsmanager:
-
-    ```bash
-    # This will downloaded the key as `cdk-key.pem` and grant permissions.
-    $ aws secretsmanager get-secret-value --secret-id ec2-ssh-key/cdk-keypair/private --query SecretString --output text > cdk-key.pem && chmod 400 cdk-key.pem
-    ```
-
-2. SSH to the instance using the command provided from the stack's output `Ec2CdkStack.sshcommand`.
-
-    For example:
-
-    ```bash
-    $ ssh -i cdk-key.pem -o IdentitiesOnly=yes ec2-user@1.111.11.111
-    ```
-
-    _Find the command for your specific instance in the stack's output._
+```bash
+go run client.go -url=http://54.91.30.24:1323
+GET /get_message: {"message":"IA55QZmo4VsZKzrcXYhHMHNA9JNtpApW"}
+POST /verify: {"verified":"true"}
+```
 
 ## To Destroy
 
