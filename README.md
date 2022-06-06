@@ -52,6 +52,8 @@ Unit Tests
 # Unit Tests
 go test tests/utils_test.go -v
 ```
+--- 
 
+### AWS Deployment Code: [ec2-cdk](https://github.com/wrinkledeth/penrose_takehome/tree/main/scripts/ec2-cdk)
 
-### Research Notes [Notes.md](https://github.com/wrinkledeth/penrose_takehome/blob/main/Notes.md)
+### Research Notes: [Notes.md](https://github.com/wrinkledeth/penrose_takehome/blob/main/Notes.md)
