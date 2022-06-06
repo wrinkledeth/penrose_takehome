@@ -12,7 +12,7 @@
 	- [Interfaces](#interfaces)
 	- [Maps](#maps)
 	- [Modules / Dependencies](#modules--dependencies)
-	- [Packages / Importing:](#packages--importing)
+	- [Packages / Importing](#packages--importing)
 	- [Pointers](#pointers)
 	- [Random String](#random-string)
 	- [slices](#slices)
@@ -46,6 +46,7 @@
 - [Git](#git)
 	- [Creating an issue](#creating-an-issue)
 	- [Undo last commit](#undo-last-commit)
+	- [Undo Git Add](#undo-git-add)
 - [AWS Script for cloud deployment](#aws-script-for-cloud-deployment)
 	- [AWS CLI Install](#aws-cli-install)
 	- [CDK install](#cdk-install)
@@ -61,15 +62,7 @@ Sub Tasks
 2. Go HTTP Server (Echo)
 3. Write Unit Tests
 4. Error Handling & Edge Cases
-
- Questions:
-- Public Key Bytes to Public Key Address (Hex) and vice versa??? What is going on here?
-  - https://ethereum.stackexchange.com/questions/76520/proper-way-to-save-a-public-key-as-bytes-in-a-contract
-  - Seems like we can convert from Bytes to Hex Address but can we do the reverse?
-  - https://stackoverflow.com/questions/52502511/how-to-generate-bytes-array-from-publickey
-  - NOTE: This is becuase the address is computed by hashing the public key, so it cannot be done in reverse.
-- Need to research Unit testing. 
-
+5. AWS Deployment script
 
 # Go 
 - https://go.dev/doc/ (docs)
@@ -174,7 +167,7 @@ client, err := ethclient.Dial("https://mainnet.infura.io")  // use module
 ```
 
 
-## Packages / Importing:
+## Packages / Importing
 https://go.dev/doc/code
 https://linguinecode.com/post/how-to-import-local-files-packages-in-golang
 
@@ -326,6 +319,8 @@ The public key is generated from the private key using the Elliptic Curve Digita
 https://ethereum.stackexchange.com/questions/65019/goethereum-getting-publickeybytes-from-given-public-key  
 
 To derive the public address from the public key bytes, you need to take the last 20 bytes from the keccack256 hash of the public key:
+
+*** This is important. You can get the wallet address from the public key, but not the reverse! 
 
 Public key Bytes to Hex
 
@@ -595,6 +590,12 @@ git reset --soft HEAD~1
 git reset --hard HEAD~1
 ```
 
+## Undo Git Add
+```bash
+git reset <file> # single file
+git reset # Unstage all changes
+```
+
 
 # AWS Script for cloud deployment
 Plan: use AWS CDK to generate cloudformation template which:
@@ -605,8 +606,6 @@ Plan: use AWS CDK to generate cloudformation template which:
 setup cdk: https://aws.amazon.com/getting-started/guides/setup-cdk/ 
 
 cdk with go: https://www.go-on-aws.com/infrastructure-as-go/cdk-go/cdk-instance/
-
-
 
 ## AWS CLI Install
 ```bash
@@ -659,23 +658,6 @@ npm run build
 cdk deploy
 cdk destroy
 ```
-
-Ec2CdkStack.DownloadKeyCommand = aws secretsmanager get-secret-value --secret-id ec2-ssh-key/cdk-keypair/private --query SecretString --output text > cdk-key.pem && chmod 400 cdk-key.pem
-Ec2CdkStack.IPAddress = 3.94.77.23
-Ec2CdkStack.sshcommand = ssh -i cdk-key.pem -o IdentitiesOnly=yes ec2-user@3.94.77.23
-
-ec2-user script
-```bash
-#!/bin/bash
-sudo yum update -y
-sudo yum install git -y
-sudo yum install golang -y
-
-git clone https://github.com/wrinkledeth/penrose_takehome.git
-cd penrose_takehome
-go get -d -v ./...
-go run main.go
-``` 
 ## Adding Userdata to EC2 Instance
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
 
@@ -686,19 +668,34 @@ https://bobbyhadz.com/blog/aws-cdk-ec2-userdata-example
 Trouble shoot user data script:
 ```bash
 cat /var/log/cloud-init-output.log
-
 ...
 
-Complete!
-+ git clone https://github.com/wrinkledeth/penrose_takehome.git
-Cloning into 'penrose_takehome'...
-+ cd penrose_takehome
-+ go get -d -v ./...
-missing $GOPATH
-Jun 06 16:32:16 cloud-init[1195]: util.py[WARNING]: Failed running /var/lib/cloud/instance/scripts/part-001 [1]
-Jun 06 16:32:16 cloud-init[1195]: cc_scripts_user.py[WARNING]: Failed to run module scripts-user (scripts in /var/lib/cloud/instance/scripts)
-Jun 06 16:32:16 cloud-init[1195]: util.py[WARNING]: Running module scripts-user (<module 'cloudinit.config.cc_scripts_user' from '/usr/lib/python2.7/site-packages/cloudinit/config/cc_scripts_user.pyc'>) failed
-Cloud-init v. 19.3-45.amzn2 finished at Mon, 06 Jun 2022 16:32:16 +0000. Datasource DataSourceEc2.  Up 48.67 seconds
+Working Userdata Script
+```bash
+#!/bin/bash -xe
+
+cd /home/ec2-user
+mkdir go
+
+# Install OS Dependencies
+sudo yum update -y
+sudo yum install git -y
+sudo yum install gcc -y
+
+# Install Golang
+wget https://go.dev/dl/go1.18.3.linux-arm64.tar.gz
+tar -C /usr/local -zxvf go1.18.3.linux-arm64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+export GOPATH=/home/ec2-user/go
+export GOCACHE=/home/ec2-user/.cache/go-build
+go version
+
+# Clone Repo
+git clone https://github.com/wrinkledeth/penrose_takehome.git
+cd penrose_takehome
+go get -d -v ./... # Install Go modules
+go run main.go # Start HTTP Service
+
 ```
 
 ### To Research : SAM / AWS Amplify / Figma

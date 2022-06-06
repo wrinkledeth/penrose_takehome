@@ -1,6 +1,8 @@
 # EC2 Instance Creation with CDK
+Adapted From: 
+https://github.com/aws-samples/aws-cdk-examples/tree/master/typescript/ec2-instance
 
-This AWS CDK script will create:
+This AWS CDK (Cloud Development Kit) Project will create:
 
 - A new VPC
 - Two public subnets
@@ -14,7 +16,7 @@ The `/src/config.sh` file is used to install depencendies, pull down the REST AP
 cd /home/ec2-user
 mkdir go
 
-# Install Dependencies
+# Install OS Dependencies
 sudo yum update -y
 sudo yum install git -y
 sudo yum install gcc -y
@@ -66,10 +68,21 @@ $ cdk deploy
 ```
 
 ## Sample Output
-- `Ec2CdkStack.IPAddress` = 54.91.30.24
-- `Ec2CdkStack.KeyName` = imported-key-pair
-- `Ec2CdkStack.RESTAPIClientCommand` = go run client.go -url=http://54.91.30.24:1323
-- `Ec2CdkStack.sshcommand` = ssh ec2-user@54.91.30.24
+```bash
+cdk deploy 
+
+...
+
+✅  Ec2CdkStack
+✨  Deployment time: 182.49s
+
+Outputs:
+Ec2CdkStack.IPAddress = 54.91.30.24
+Ec2CdkStack.KeyName = imported-key-pair
+Ec2CdkStack.RESTAPIClientCommand = go run client.go -url=http://54.91.30.24:1323
+Ec2CdkStack.sshcommand = ssh ec2-user@54.91.30.24
+```
+
 
 ```bash
 go run client.go -url=http://54.91.30.24:1323
@@ -83,3 +96,4 @@ POST /verify: {"verified":"true"}
 # Destroy all project resources.
 $ cdk destroy
 ```
+
