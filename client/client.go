@@ -54,9 +54,6 @@ func main() {
 	privKey := os.Getenv("PRIVATE_KEY")
 	pubKey := os.Getenv("PUBLIC_KEY")
 
-	// targetURL := "http://127.0.0.1:1323/"
-	// targetURL := "http://3.89.157.74:1323/"
-
 	// get random message and grab session cookie
 	resp_json, cookie := getMessage(targetURL) // get random message
 	fmt.Print("GET /get_message: " + resp_json)

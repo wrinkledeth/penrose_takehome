@@ -45,8 +45,6 @@ address : 0x96216849c49358B10257cb55b28eA603c874b05E
 */
 
 func TestLoadEnv(t *testing.T) {
-	// pull
-
 	// load key pair
 	utils.LoadEnv("../.env")
 	privateKey := os.Getenv("PRIVATE_KEY")

@@ -6,7 +6,7 @@ This project implements a REST API which verifies if a user owns the private key
 - client/client.go (http client for testing)
 - utils/crypo_utils.go (GETH backend utils for message signing and signature verification) 
 - tests/utils_test.go (unit tests for utility functions)
-- scripts/ec2-cdk (CDK Infrastructure as code for cloud deployments to AWS EC2)
+- scripts/ec2-cdk (CDK Infrastructure as code for automated deployment to AWS EC2)
 
 ### Usage
 .env
